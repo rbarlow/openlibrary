@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
 import os
+import subprocess
 import sys
 from distutils.command.install import INSTALL_SCHEMES
 from distutils.command.install_data import install_data
 from distutils.core import setup
+
+subprocess.Popen(['./setup.sh'])
 
 cmdclasses = {'install_data': install_data}
 
