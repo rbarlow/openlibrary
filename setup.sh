@@ -23,4 +23,5 @@ else
 fi
 
 cd $root
-./scripts/i18n-messages compile
+# I've commented the next part out, because it relies on a package that isn't maintained.
+# ./scripts/i18n-messages compile
