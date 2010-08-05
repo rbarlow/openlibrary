@@ -1,14 +1,18 @@
 # wrapper code for easier handling of ONIX files:
 #
-# OnixHandler -- a sax ContentHandler that produces a stream of ONIX "product" data in xmltramp objects
+# OnixHandler -- a sax ContentHandler that produces a stream of ONIX "product" data in xmltramp
+#                objects
 #
-# OnixProduct -- a wrapper for the objects produced by OnixHandler, providing human-friendly field access
-# (mostly just providing a dictionary interface where long ("reference") names can be used even when the
-# data is encoded with opaque ("short") names.)
+# OnixProduct -- a wrapper for the objects produced by OnixHandler, providing human-friendly
+#                field access (mostly just providing a dictionary interface where long
+#                ("reference") names can be used even when the data is encoded with opaque
+#                ("short") names.)
 
 from xml.sax.handler import *
 from catalog.onix.sax_utils import *
 from catalog.onix import xmltramp
+
+quiet = False
 
 repo_path = os.getenv ("PHAROS_REPO")
 codelists_path = "%s/%s" % (repo_path, "catalog/onix/ONIX_BookProduct_CodeLists.xsd")
@@ -58,9 +62,9 @@ class OnixProduct:
         else:
             if len (values) == 0:
                 raise KeyError ("no value for %s (%s)" % (reference_name, name))
-            elif len (values) > 1:
-                raise Exception ("more than one value for %s (%s)" % (reference_name, name))
-            return OnixProduct.reify_child (values[0])
+            if len(values) > 1:
+                return [OnixProduct.reify_child(value) for value in values]
+            return OnixProduct.reify_child(values[0])
 
     def get (self, n):
         try:
@@ -175,10 +179,13 @@ def produce_items (input, produce):
     parser.setContentHandler (OnixHandler (parser, produce))
     url_cache_dir = os.getenv ("URL_CACHE_DIR")
     if url_cache_dir:
-        sys.stderr.write ("using url cache in %s\n" % url_cache_dir)
+        if not quiet:
+            sys.stderr.write ("using url cache in %s\n" % url_cache_dir)
         parser.setEntityResolver (CachingEntityResolver (parser, url_cache_dir))
     else:
-        sys.stderr.write ("no url_cache_dir; XML resources will always be loaded from network\n")
+        if not quiet:
+            sys.stderr.write(
+                "no url_cache_dir; XML resources will always be loaded from network\n")
     parser.setErrorHandler (TestErrorHandler ())
     parser.parse (source)
 
